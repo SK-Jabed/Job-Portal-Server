@@ -35,6 +35,7 @@ async function run() {
 
     // Jobs Related API
     const jobsCollection = client.db("jobPortal").collection("jobs");
+    const jobApplicationCollection = client.db("jobPortal").collection("job_applications");
 
     app.get("/allJobs", async (req, res) => {
         const cursor = jobsCollection.find();
@@ -49,15 +50,38 @@ async function run() {
       res.send(result);
     })
 
+    // Job application API
+    app.get("/job-application", async (req, res) => {
+      const email = req.query.email;
+      const query = { applicant_email: email };
+      const result = await jobApplicationCollection.find(query).toArray();
+
+      for (const application of result) {
+        const query1 = { _id: new ObjectId(application.job_id) }
+        const job = await jobsCollection.findOne(query1);
+
+        if (job) {
+          application.title = job.title;
+          application.company = job.company;
+          application.company_logo = job.company_logo;
+        }
+      }
+
+      res.send(result);
+    })
+
+    app.post("/job-applications", async (req, res) => {
+      const application = req.body;
+      const result = await jobApplicationCollection.insertOne(application);
+      res.send(result);
+    })
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
 run().catch(console.dir);
-
-
-
 
 
 app.get("/", (req, res) => {
