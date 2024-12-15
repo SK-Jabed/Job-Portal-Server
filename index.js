@@ -73,7 +73,6 @@ async function run() {
           application.company_logo = job.company_logo;
         }
       }
-
       res.send(result);
     })
 
