@@ -9,9 +9,35 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
+
+const logger = (req, res, next) => {
+  console.log("Inside The Logger");
+  next();
+}
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorized Access" });
+    }
+
+    req.user = decoded;
+    next();
+  });
+}
 
 
 const uri =
@@ -39,7 +65,9 @@ async function run() {
     // Auth Related API
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "2h" });
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "5h",
+      });
       res
         .cookie("token", token, {
           httpOnly: true,
@@ -52,7 +80,8 @@ async function run() {
     const jobsCollection = client.db("jobPortal").collection("jobs");
     const jobApplicationCollection = client.db("jobPortal").collection("job_applications");
 
-    app.get("/allJobs", async (req, res) => {
+    app.get("/allJobs", logger, async (req, res) => {
+      console.log("Now Inside the Logger");
       const email = req.query.email;
       let query = {};
 
@@ -79,9 +108,16 @@ async function run() {
     })
 
     // Job application API
-    app.get("/job-application", async (req, res) => {
+    app.get("/job-application", verifyToken, async (req, res) => {
       const email = req.query.email;
       const query = { applicant_email: email };
+
+      if (req.user.email !== req.query.email) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+
+      // console.log("Cook Rook Cook Cookies", req.cookies);
+
       const result = await jobApplicationCollection.find(query).toArray();
 
       for (const application of result) {
