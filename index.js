@@ -22,6 +22,7 @@ const logger = (req, res, next) => {
   console.log("Inside The Logger");
   next();
 }
+
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
 
