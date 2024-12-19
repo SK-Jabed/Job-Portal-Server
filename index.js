@@ -11,8 +11,12 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
-    credentials: true
+    origin: [
+      "http://localhost:5173",
+      "https://job-portal-e94bc.web.app",
+      "https://job-portal-e94bc.firebaseapp.com",
+    ],
+    credentials: true,
   })
 );
 app.use(express.json());
@@ -57,9 +61,10 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
+
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
@@ -74,25 +79,25 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false, // http://localhost:5173/auth/login
+          secure: process.env.NODE_ENV === "production"
         })
         .send({ success: true });
     })
 
     app.post("/logout", (req, res) => {
       res
-      .clearCookie("token", {
-        httpOnly: true,
-        secure: false
-      })
-      .send({ success: true })
+        .clearCookie("token", {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        })
+        .send({ success: true });
     })
 
     // Jobs Related API
     const jobsCollection = client.db("jobPortal").collection("jobs");
     const jobApplicationCollection = client.db("jobPortal").collection("job_applications");
 
-    app.get("/allJobs", logger, async (req, res) => {
+    app.get("/allJobs", async (req, res) => {
       console.log("Now Inside the Logger");
       const email = req.query.email;
       let query = {};
