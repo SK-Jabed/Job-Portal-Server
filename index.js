@@ -67,14 +67,24 @@ async function run() {
     app.post("/jwt", async (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "5h",
+        expiresIn: "7d",
       });
+
       res
         .cookie("token", token, {
           httpOnly: true,
           secure: false, // http://localhost:5173/auth/login
         })
         .send({ success: true });
+    })
+
+    app.post("/logout", (req, res) => {
+      res
+      .clearCookie("token", {
+        httpOnly: true,
+        secure: false
+      })
+      .send({ success: true })
     })
 
     // Jobs Related API
