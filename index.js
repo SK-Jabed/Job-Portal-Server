@@ -95,7 +95,7 @@ async function run() {
         .send({ success: true });
     })
 
-    // Jobs Related API
+    // Jobs Related API Collections
     const jobsCollection = client.db("jobPortal").collection("jobs");
     const jobApplicationCollection = client.db("jobPortal").collection("job_applications");
 
