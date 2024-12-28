@@ -135,8 +135,6 @@ async function run() {
         return res.status(403).send({ message: "Forbidden Access" });
       }
 
-      // console.log("Cook Rook Cook Cookies", req.cookies);
-
       const result = await jobApplicationCollection.find(query).toArray();
 
       for (const application of result) {
