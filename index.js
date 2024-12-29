@@ -162,7 +162,7 @@ async function run() {
       const application = req.body;
       const result = await jobApplicationCollection.insertOne(application);
 
-      // Use aggregate (Not the best way)
+      // Use Aggregate (Not the best way)
       const id = application.job_id;
       const query = { _id: new ObjectId(id) }
       const job = await jobsCollection.findOne(query);
