@@ -160,6 +160,7 @@ async function run() {
       res.send(result);
     });
 
+    // Post Job application to database
     app.post("/job-applications", async (req, res) => {
       const application = req.body;
       const result = await jobApplicationCollection.insertOne(application);
