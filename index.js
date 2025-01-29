@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require('dotenv').config();
+require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,7 +25,7 @@ app.use(cookieParser());
 const logger = (req, res, next) => {
   console.log("Inside The Logger");
   next();
-}
+};
 
 const verifyToken = (req, res, next) => {
   const token = req?.cookies?.token;
@@ -43,11 +43,9 @@ const verifyToken = (req, res, next) => {
     req.user = decoded;
     next();
   });
-}
+};
 
-
-const uri =
-  `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.baizo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.baizo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -83,7 +81,7 @@ async function run() {
           sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
-    })
+    });
 
     app.post("/logout", (req, res) => {
       res
@@ -93,11 +91,13 @@ async function run() {
           sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
-    })
+    });
 
     // Jobs Related API Collections
     const jobsCollection = client.db("jobPortal").collection("jobs");
-    const jobApplicationCollection = client.db("jobPortal").collection("job_applications");
+    const jobApplicationCollection = client
+      .db("jobPortal")
+      .collection("job_applications");
 
     app.get("/allJobs", async (req, res) => {
       console.log("Now Inside the Logger");
@@ -105,26 +105,26 @@ async function run() {
       let query = {};
 
       if (email) {
-        query = { hr_email: email }
+        query = { hr_email: email };
       }
 
       const cursor = jobsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
-    })
+    });
 
     app.get("/allJobs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobsCollection.findOne(query);
       res.send(result);
-    })
+    });
 
     app.post("/allJobs", async (req, res) => {
       const newJob = req.body;
       const result = await jobsCollection.insertOne(newJob);
       res.send(result);
-    })
+    });
 
     // Job application API
     app.get("/job-application", verifyToken, async (req, res) => {
@@ -138,7 +138,7 @@ async function run() {
       const result = await jobApplicationCollection.find(query).toArray();
 
       for (const application of result) {
-        const query1 = { _id: new ObjectId(application.job_id) }
+        const query1 = { _id: new ObjectId(application.job_id) };
         const job = await jobsCollection.findOne(query1);
 
         if (job) {
@@ -149,14 +149,14 @@ async function run() {
         }
       }
       res.send(result);
-    })
+    });
 
     app.get("/job-applications/jobs/:job_id", async (req, res) => {
       const jobId = req.params.job_id;
       const query = { job_id: jobId };
       const result = await jobApplicationCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
     app.post("/job-applications", async (req, res) => {
       const application = req.body;
@@ -164,14 +164,13 @@ async function run() {
 
       // Use Aggregate (Not the best way)
       const id = application.job_id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const job = await jobsCollection.findOne(query);
-      
+
       let newCount = 0;
       if (job.applicationCount) {
         newCount = job.applicationCount + 1;
-      }
-      else {
+      } else {
         newCount = 1;
       }
 
@@ -179,36 +178,37 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
-          applicationCount: newCount
-        }
-      }
+          applicationCount: newCount,
+        },
+      };
 
       const updatedResult = await jobsCollection.updateOne(filter, updatedDoc);
 
       res.send(result);
-    })
+    });
 
     app.patch("/job-applications/:id", async (req, res) => {
       const id = req.params.id;
       const data = req.body;
-      const filter = {_id: new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
-          status: data.status
-        }
-      }
+          status: data.status,
+        },
+      };
 
-      const result = await jobApplicationCollection.updateOne(filter, updatedDoc);
+      const result = await jobApplicationCollection.updateOne(
+        filter,
+        updatedDoc
+      );
       res.send(result);
     });
-
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
 run().catch(console.dir);
-
 
 app.get("/", (req, res) => {
   res.send("Job Portal Server is Running");
