@@ -99,6 +99,7 @@ async function run() {
       .db("jobPortal")
       .collection("job_applications");
 
+      // Get all Jobs from database
     app.get("/allJobs", async (req, res) => {
       console.log("Now Inside the Logger");
       const email = req.query.email;
@@ -120,6 +121,7 @@ async function run() {
       res.send(result);
     });
 
+    // Insert a Job to database
     app.post("/allJobs", async (req, res) => {
       const newJob = req.body;
       const result = await jobsCollection.insertOne(newJob);
