@@ -45,11 +45,6 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-
-
-
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.baizo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -104,7 +99,7 @@ async function run() {
       .db("jobPortal")
       .collection("job_applications");
 
-      // Get all Jobs from database
+    // Get all Jobs from database
     app.get("/allJobs", async (req, res) => {
       console.log("Now Inside the Logger");
       const email = req.query.email;
